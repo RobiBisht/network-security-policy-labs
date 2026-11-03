@@ -1,0 +1,107 @@
+Lab 5: Cisco device hardening, port security and ACLs (Packet Tracer)
+
+Policy requirements (4.3, 4.4)
+SSH-only management with individual accounts, encrypted passwords, warning banner, port security against rogue devices, and student VLAN restricted from admin and server VLANs.
+
+Step 1: secure device access on the router/switch
+
+enable
+configure terminal
+hostname STI-R1
+no ip domain-lookup
+ip domain-name sti.local
+
+! passwords stored encrypted
+enable secret Str0ng#EnableP@ss
+service password-encryption
+security passwords min-length 10
+
+! individual administrator account
+username netadmin secret Adm1n#Secure2026
+
+! legal warning banner
+banner motd # Authorised use only. Activity is monitored and logged. #
+
+! SSH version 2
+crypto key generate rsa modulus 2048
+ip ssh version 2
+ip ssh time-out 60
+ip ssh authentication-retries 3
+
+! slow down brute force logins
+login block-for 120 attempts 3 within 60
+
+login local
+ exec-timeout 5 0
+ logging synchronous
+line vty 0 4
+ login local
+ transport input ssh
+ exec-timeout 5 0
+end
+write memory
+
+Step 2: port security on an access switch (stops rogue devices and MAC flooding)
+
+configure terminal
+interface range fastEthernet 0/1 - 20
+ switchport mode access
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security mac-address sticky
+ switchport port-security violation shutdown
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+
+! shut down unused ports and park them in an unused VLAN
+interface range fastEthernet 0/21 - 24
+ switchport mode access
+ switchport access vlan 999
+ shutdown
+end
+write memory
+
+Step 3: extended ACL for the student VLAN
+
+Rule order matters: the router reads the list from top to bottom and stops at the first match.
+
+configure terminal
+ip access-list extended STUDENT-IN
+ remark allow DHCP and DNS
+ permit udp any eq bootpc any eq bootps
+ permit udp 192.168.20.0 0.0.0.255 any eq 53
+ permit tcp 192.168.20.0 0.0.0.255 any eq 53
+ remark allow web server in server VLAN only on 80/443
+ permit tcp 192.168.20.0 0.0.0.255 host 192.168.30.10 eq 80
+ permit tcp 192.168.20.0 0.0.0.255 host 192.168.30.10 eq 443
+ remark block admin and server VLANs
+ deny ip 192.168.20.0 0.0.0.255 192.168.10.0 0.0.0.255 log
+ deny ip 192.168.20.0 0.0.0.255 192.168.30.0 0.0.0.255 log
+ remark allow internet browsing
+ permit tcp 192.168.20.0 0.0.0.255 any eq 80
+ permit tcp 192.168.20.0 0.0.0.255 any eq 443
+ remark everything else is denied
+ deny ip any any log
+exit
+
+interface gigabitEthernet 0/0.20
+ ip access-group STUDENT-IN in
+end
+write memory! console and remote lines
+line console 0
+
+Step 4: verify
+
+show running-config | section line vty
+show ip ssh
+show port-security
+show port-security interface fastEthernet 0/1
+show access-lists STUDENT-IN
+show ip interface gigabitEthernet 0/0.20 | include access list
+
+! test from a student PC in Packet Tracer
+ping 192.168.10.10 -> must FAIL (admin VLAN blocked)
+ping 192.168.30.10 -> ICMP blocked; browser to http://192.168.30.10 must WORK
+
+Teaching point
+Show students the ACL hit counters in show access-lists. The numbers increase when students try forbidden traffic. The policy is visibly enforced.

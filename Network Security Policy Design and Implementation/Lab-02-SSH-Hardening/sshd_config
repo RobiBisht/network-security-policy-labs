@@ -1,0 +1,48 @@
+Lab 2: SSH hardening (policy 4.3)
+
+Policy requirement
+Administrative access uses SSH only, individual accounts, no direct root login, key-based authentication, and shows a legal warning banner.
+
+Step 1: create a key pair on your admin workstation and copy it to the server
+
+ssh-keygen -t ed25519 -C "admin@sti"
+ssh-copy-id student1@192.168.30.10
+ssh student1@192.168.30.10 # confirm key login works BEFORE continuing
+
+Step 2: edit the SSH daemon configuration
+
+sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
+sudo nano /etc/ssh/sshd_config
+PermitRootLogin no
+PubkeyAuthentication yes
+PasswordAuthentication no
+PermitEmptyPasswords no
+MaxAuthTries 3
+LoginGraceTime 30
+AllowUsers student1 netadmin
+ClientAliveInterval 300
+ClientAliveCountMax 2
+X11Forwarding no
+Banner /etc/issue.net
+
+Step 3: create the warning banner
+
+sudo nano /etc/issue.net
+
+*** Authorised use only. Activity is monitored and logged. ***
+*** Unauthorised access is prohibited and may be prosecuted. ***
+
+Step 4: test the configuration, reload, and verify
+
+sudo sshd -t # no output means the syntax is valid
+sudo systemctl reload ssh # service is named sshd on RHEL/CentOS
+
+# from another terminal
+ssh root@192.168.30.10 # should be refused
+ssh -o PubkeyAuthentication=no student1@192.168.30.10 # should be refused
+
+# show the effective configuration
+sudo sshd -T | grep -Ei "permitrootlogin|passwordauthentication|maxauthtries"
+
+Ubuntu includes extra files from /etc/ssh/sshd_config.d/. Always check the effective settings with sshd -T because the first value found wins.
+

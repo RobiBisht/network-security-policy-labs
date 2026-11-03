@@ -1,0 +1,35 @@
+Lab 6: Windows password, lockout and firewall policy
+
+Policy requirement (4.2, 4.5)
+12-character passwords with complexity, 90-day maximum age, 5-password history, lockout after 5 failures, firewall on with inbound default block, RDP only from the admin VLAN.
+
+On a domain: use Group Policy Management. Path: Computer Configuration, Policies, Windows Settings, Security Settings, Account Policies, then Password Policy and Account Lockout Policy. On a standalone PC use an elevated Command Prompt or PowerShell:
+
+:: Password and lockout policy (run as Administrator)
+net accounts /minpwlen:12 /maxpwage:90 /minpwage:1 /uniquepw:5
+net accounts /lockoutthreshold:5 /lockoutduration:15 /lockoutwindow:15
+net accounts
+
+:: Turn on password complexity (not available through net accounts)
+secedit /export /cfg C:\sec.cfg
+notepad C:\sec.cfg
+
+:: change the line PasswordComplexity = 0 to PasswordComplexity = 1
+secedit /configure /db C:\Windows\security\local.sdb /cfg C:\sec.cfg /areas SECURITYPOLICY
+gpupdate /force
+
+# Windows Defender Firewall in PowerShell (run as Administrator)
+Set-NetFirewallProfile -Profile Domain,Private,Public -Enabled True `
+ -DefaultInboundAction Block -DefaultOutboundAction Allow `
+ -LogAllowed False -LogBlocked True
+
+New-NetFirewallRule -DisplayName "Allow RDP from Admin VLAN" `
+ -Direction Inbound -Protocol TCP -LocalPort 3389 `
+ -RemoteAddress 192.168.10.0/24 -Action Allow
+
+# Disable the legacy SMBv1 protocol
+Set-SmbServerConfiguration -EnableSMB1Protocol $false -Force
+
+# Verify
+Get-NetFirewallProfile | Format-Table Name, Enabled, DefaultInboundAction
+Get-NetFirewallRule -DisplayName "Allow RDP*" | Format-List DisplayName, Enabled, Action

@@ -1,0 +1,55 @@
+Lab 7: Logging and auditing (policy 4.9)
+
+Policy requirement
+Authentication and administrative activity is logged, time is synchronised, logs go to a central server and are kept at least 180 days.
+
+Step 1: audit important files with auditd
+
+sudo apt install -y auditd
+sudo nano /etc/audit/rules.d/policy.rules
+
+-w /etc/passwd -p wa -k identity
+-w /etc/shadow -p wa -k identity
+-w /etc/sudoers -p wa -k privilege
+-w /etc/ssh/sshd_config -p wa -k sshconfig
+
+sudo augenrules --load
+sudo auditctl -l
+
+# generate an event, then search for it
+sudo touch /etc/sudoers.d/test && sudo rm /etc/sudoers.d/test
+sudo ausearch -k privilege -i | tail -20
+
+Step 2: forward logs to the central syslog server
+
+# on the client
+sudo nano /etc/rsyslog.d/90-forward.conf
+*.* @@192.168.10.50:514 # @@ means TCP, a single @ means UDP
+
+sudo systemctl restart rsyslog
+
+# on the central server: enable the TCP listener in /etc/rsyslog.conf
+module(load="imtcp")
+input(type="imtcp" port="514")
+
+Step 3: check time synchronisation and keep logs 180 days
+
+timedatectl status # System clock synchronized: yes
+
+# /etc/logrotate.d/rsyslog (excerpt, keep about 26 weekly files)
+/var/log/auth.log {
+ weekly
+ rotate 26
+ compress
+ missingok
+ notifempty
+}
+
+Step 4: simple log review for failed logins
+
+# top source addresses of failed SSH logins
+sudo grep "Failed password" /var/log/auth.log | awk '{print $(NF-3)}' \
+ | sort | uniq -c | sort -nr | head
+
+# the same on systems that use the journal
+sudo journalctl -u ssh --since "24 hours ago" | grep "Failed password"
