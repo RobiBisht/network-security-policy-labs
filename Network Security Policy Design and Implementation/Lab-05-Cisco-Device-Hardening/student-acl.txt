@@ -1,0 +1,33 @@
+! Restrict Student VLAN Access
+
+configure terminal
+
+ip access-list extended STUDENT-IN
+
+ remark Allow DHCP and DNS
+ permit udp any eq bootpc any eq bootps
+ permit udp 192.168.20.0 0.0.0.255 any eq 53
+ permit tcp 192.168.20.0 0.0.0.255 any eq 53
+
+ remark Allow web server HTTP and HTTPS
+ permit tcp 192.168.20.0 0.0.0.255 host 192.168.30.10 eq 80
+ permit tcp 192.168.20.0 0.0.0.255 host 192.168.30.10 eq 443
+
+ remark Block Admin and Server VLANs
+ deny ip 192.168.20.0 0.0.0.255 192.168.10.0 0.0.0.255 log
+ deny ip 192.168.20.0 0.0.0.255 192.168.30.0 0.0.0.255 log
+
+ remark Allow Internet HTTP and HTTPS
+ permit tcp 192.168.20.0 0.0.0.255 any eq 80
+ permit tcp 192.168.20.0 0.0.0.255 any eq 443
+
+ remark Deny remaining traffic
+ deny ip any any log
+
+exit
+
+interface gigabitEthernet 0/0.20
+ ip access-group STUDENT-IN in
+
+end
+write memory

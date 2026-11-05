@@ -1,0 +1,9 @@
+# Monitor identity files
+-w /etc/passwd -p wa -k identity
+-w /etc/shadow -p wa -k identity
+
+# Monitor privilege configuration
+-w /etc/sudoers -p wa -k privilege
+
+# Monitor SSH configuration
+-w /etc/ssh/sshd_config -p wa -k sshconfig

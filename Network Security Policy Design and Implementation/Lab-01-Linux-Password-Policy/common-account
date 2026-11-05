@@ -1,0 +1,3 @@
+# PAM account configuration
+
+account required pam_faillock.so

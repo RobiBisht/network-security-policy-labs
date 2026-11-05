@@ -1,81 +1,108 @@
-# Lab 7 - Logging and Auditing
+# Lab 7: Logging and Auditing
 
-## Aim
-Configure Linux auditing, centralized log forwarding, time synchronization checks, and log retention.
+## Policy Requirement (4.9)
 
-## Policy Requirements
-- Log authentication and administrative activity.
-- Synchronize system time.
-- Forward logs to a central server.
-- Retain logs for at least 180 days.
+Authentication and administrative activity must be logged, system time must be synchronized, logs must be forwarded to a central server, and logs must be retained for at least 180 days.
 
-## Tools and Technologies
-Ubuntu Linux, auditd, rsyslog, systemd journal, logrotate.
+## Objective
 
-## Implementation
+- Monitor important system files using `auditd`.
+- Configure centralized log forwarding using `rsyslog`.
+- Verify system time synchronization.
+- Configure log rotation and retention.
+- Review failed SSH login attempts.
 
-### 1. Install auditd and configure file watches
+## Files Included
+
+| File | Description |
+|---|---|
+| `policy.rules` | Audit rules for identity, privilege, and SSH configuration files |
+| `90-forward.conf` | Rsyslog client forwarding configuration |
+| `logrotate-rsyslog.conf` | Log rotation and retention configuration |
+| `log-review.sh` | Commands for reviewing failed SSH login attempts |
+
+## Step 1: Configure File Auditing with auditd
+
+Install the audit package:
+
 ```bash
+sudo apt update
 sudo apt install -y auditd
+```
+
+Create the audit rules file:
+
+```bash
 sudo nano /etc/audit/rules.d/policy.rules
 ```
-Add:
-```text
--w /etc/passwd -p wa -k identity
--w /etc/shadow -p wa -k identity
--w /etc/sudoers -p wa -k privilege
--w /etc/ssh/sshd_config -p wa -k sshconfig
-```
-Load and verify:
+
+Copy the contents of `policy.rules` into the configuration file.
+
+Load and verify the rules:
+
 ```bash
 sudo augenrules --load
 sudo auditctl -l
+```
+
+Generate an audit event and search for privilege-related activity:
+
+```bash
+sudo touch /etc/sudoers.d/test && sudo rm /etc/sudoers.d/test
 sudo ausearch -k privilege -i | tail -20
 ```
 
-### 2. Forward logs to central syslog
-On the client, create `/etc/rsyslog.d/90-forward.conf`:
-```text
-*.* @@192.168.10.50:514
+**Note:** Validate any test file before placing it in `/etc/sudoers.d/`, and avoid unnecessary changes to sudo configuration.
+
+## Step 2: Configure Centralized Log Forwarding
+
+On the client system, open:
+
+```bash
+sudo nano /etc/rsyslog.d/90-forward.conf
 ```
-`@@` uses TCP; a single `@` uses UDP.
+
+Copy the contents of `90-forward.conf` into the configuration file.
+
+Restart rsyslog:
+
 ```bash
 sudo systemctl restart rsyslog
 ```
-On the central server, configure the TCP listener in `/etc/rsyslog.conf`:
-```text
+
+On the central syslog server, enable the TCP listener in `/etc/rsyslog.conf`:
+
+```conf
 module(load="imtcp")
 input(type="imtcp" port="514")
 ```
 
-### 3. Check time and retention
+Restart rsyslog on the server:
+
+```bash
+sudo systemctl restart rsyslog
+```
+
+**Note:** TCP port 514 must be allowed through the central server firewall.
+
+## Step 3: Verify Time Synchronization and Configure Log Retention
+
+Check time synchronization:
+
 ```bash
 timedatectl status
 ```
-The practical's logrotate example keeps 26 weekly files (about 6 months); review retention against the 180-day requirement.
 
-### 4. Review failed SSH logins
+Verify that the system clock is synchronized.
+
+Configure log rotation:
+
 ```bash
-sudo grep "Failed password" /var/log/auth.log | awk '{print $(NF-3)}' \
- | sort | uniq -c | sort -nr | head
-
-sudo journalctl -u ssh --since "24 hours ago" | grep "Failed password"
+sudo nano /etc/logrotate.d/rsyslog
 ```
 
-## Verification
-- `auditctl -l` lists audit rules.
-- `ausearch` returns matching audit events.
-- `timedatectl status` reports synchronization status.
-- Review forwarded logs on the central server and confirm retention settings.
+Use the contents of `logrotate-rsyslog.conf` as the configuration reference.
 
-## Screenshots
-Store audit rules, service status, and log-review screenshots in `screenshots/`.
+The configuration uses weekly rotation and 26 rotated files, approximately six months of retention under normal rotation conditions.
 
-## Result
-Linux auditing and centralized logging settings were configured and checked.
-
-## Learning Outcomes
-- Added audit watches for sensitive files.
-- Forwarded syslog messages to a central server.
-- Checked time synchronization and log retention.
-- Reviewed failed authentication events.
+**Note:** Rotation alone does not guarantee 180

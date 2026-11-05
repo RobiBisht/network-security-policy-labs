@@ -1,106 +1,122 @@
-\# Network Security Policy Design and Implementation
+# Network Security Policy Design and Implementation
+
+## Overview
+
+This directory contains practical laboratory exercises for the subject **Network Security Policy Design and Implementation**.
+
+The labs demonstrate the implementation, configuration, testing, and verification of security policies across Linux, Windows, networking devices, and VPN environments.
+
+## Objectives
+
+- Implement password and account security policies.
+- Harden SSH and administrative access.
+- Configure host firewalls and access control.
+- Protect systems against repeated authentication attempts.
+- Apply Cisco device security and network ACLs.
+- Configure Windows password, lockout, and firewall policies.
+- Implement security logging and auditing.
+- Configure encrypted remote access using WireGuard VPN.
+- Automate Linux security compliance verification using Python.
+
+## Laboratory Index
+
+| Lab | Title | Policy Reference |
+|---|---|---|
+| Lab 1 | Linux Password and Account Lockout Policy | 4.2 |
+| Lab 2 | SSH Hardening | 4.3 |
+| Lab 3 | Host Firewall with Default Deny | 4.5 |
+| Lab 4 | Block Repeated Attackers with Fail2ban | 4.5 |
+| Lab 5 | Cisco Device Hardening, Port Security, and ACLs | 4.3, 4.4 |
+| Lab 6 | Windows Password, Lockout, and Firewall Policy | 4.2, 4.5 |
+| Lab 7 | Security Logging and Auditing | Logging and Auditing |
+| Lab 8 | Remote Access with WireGuard VPN | 4.7 |
+| Lab 9 | Automated Security Policy Compliance Checker | Multiple Policies |
+
+## Repository Structure
+
+```text
+Network Security Policy Design and Implementation/
+│
+├── README.md
+│
+├── Lab 1/
+│   ├── README.md
+│   ├── Configuration Files
+│   └── screenshot/
+│
+├── Lab 2/
+│   ├── README.md
+│   ├── Configuration Files
+│   └── screenshot/
+│
+├── Lab 3/
+│   ├── README.md
+│   ├── Configuration Files
+│   └── screenshot/
+│
+├── Lab 4/
+│   ├── README.md
+│   ├── Configuration Files
+│   └── screenshot/
+│
+├── Lab 5/
+│   ├── README.md
+│   ├── Configuration Files
+│   └── screenshot/
+│
+├── Lab 6/
+│   ├── README.md
+│   ├── Configuration Files
+│   └── screenshot/
+│
+├── Lab 7/
+│   ├── README.md
+│   ├── Configuration Files
+│   └── screenshot/
+│
+├── Lab 8/
+│   ├── README.md
+│   ├── Configuration Files
+│   └── screenshot/
+│
+└── Lab 9/
+    ├── README.md
+    ├── policy_check.py
+    └── screenshot/
+```
+
+## Technologies Used
+
+- Ubuntu Linux
+- Kali Linux
+- Windows
+- Cisco Packet Tracer
+- OpenSSH
+- UFW and nftables
+- Fail2ban
+- WireGuard VPN
+- Python 3
+- Linux auditing tools
+
+## Documentation
 
+Each laboratory folder contains:
 
+- **README.md:** Aim, policy requirements, procedure, commands, verification, and result.
+- **Configuration Files:** Reference configurations or scripts used in the practical.
+- **screenshot/:** Screenshots demonstrating practical execution and verification.
 
-\## Introduction
+## Security Notice
 
+Configuration files and scripts are provided for educational and laboratory purposes.
 
+- Review configurations before applying them to real systems.
+- Use isolated virtual machines or authorized lab environments.
+- Never publish passwords, private keys, or sensitive credentials.
+- Maintain backups before modifying security configurations.
+- Verify security settings after implementation.
 
-This directory contains practical exercises related to Network Security Policy Design and Implementation. The labs focus on implementing, configuring, and verifying security policies across Linux, Windows, Cisco networking devices, and Python-based security automation.
+## Learning Outcome
 
-
-
-\## Practical Labs
-
-
-
-| Lab | Practical Title |
-
-|---|---|
-
-| Lab 1 | Linux Password and Account Lockout Policy |
-
-| Lab 2 | SSH Hardening |
-
-| Lab 3 | Host Firewall with Default Deny |
-
-| Lab 4 | Block Repeated Attackers with Fail2ban |
-
-| Lab 5 | Cisco Device Hardening, Port Security, and ACLs |
-
-| Lab 6 | Windows Password, Lockout, and Firewall Policy |
-
-| Lab 7 | Logging and Auditing |
-
-| Lab 8 | Remote Access with WireGuard VPN |
-
-| Lab 9 | Automated Policy Compliance Checker in Python |
-
-
-
-\## Lab Contents
-
-
-
-Each lab directory contains its practical documentation, implementation commands, configuration files, verification steps, and screenshots where applicable.
-
-
-
-\## Technologies Used
-
-
-
-\- Ubuntu Linux
-
-\- Windows
-
-\- Cisco Packet Tracer
-
-\- Python 3
-
-\- OpenSSH
-
-\- UFW
-
-\- nftables
-
-\- Fail2ban
-
-\- auditd
-
-\- rsyslog
-
-\- WireGuard
-
-
-
-\## Learning Objectives
-
-
-
-\- Implement password security and account lockout policies.
-
-\- Harden SSH administrative access.
-
-\- Configure firewalls and network access control lists.
-
-\- Secure Cisco network devices.
-
-\- Implement logging and auditing.
-
-\- Configure secure remote access through VPN.
-
-\- Automate security policy compliance checks using Python.
-
-\- Verify security configurations through practical testing.
-
-
-
-\## Disclaimer
-
-
-
-These practicals are intended for educational purposes and authorized lab environments only.
-
-
+These practical exercises provide hands-on experience in implementing security controls, hardening systems, protecting network access, monitoring security events, and evaluating security policy compliance.
 

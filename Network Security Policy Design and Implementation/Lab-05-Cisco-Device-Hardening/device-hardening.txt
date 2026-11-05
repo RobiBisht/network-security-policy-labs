@@ -1,0 +1,40 @@
+enable
+configure terminal
+hostname STI-R1
+no ip domain-lookup
+ip domain-name sti.local
+
+! Password security
+enable secret Str0ng#EnableP@ss
+service password-encryption
+security passwords min-length 10
+
+! Individual administrator account
+username netadmin secret Adm1n#Secure2026
+
+! Legal warning banner
+banner motd # Authorised use only. Activity is monitored and logged. #
+
+! SSH version 2
+crypto key generate rsa modulus 2048
+ip ssh version 2
+ip ssh time-out 60
+ip ssh authentication-retries 3
+
+! Login brute-force protection
+login block-for 120 attempts 3 within 60
+
+! Console access
+line console 0
+ login local
+ exec-timeout 5 0
+ logging synchronous
+
+! Remote management using SSH only
+line vty 0 4
+ login local
+ transport input ssh
+ exec-timeout 5 0
+
+end
+write memory

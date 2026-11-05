@@ -1,31 +1,60 @@
-# Lab 2 - SSH Hardening
+# Lab 2: SSH Hardening
 
-## Aim
-Harden administrative SSH access on the Ubuntu server.
+## Policy Requirement (4.3)
 
-## Policy Requirements
-Use SSH for administration, individual accounts, no direct root login, key-based authentication, and a legal warning banner.
+Administrative access uses SSH only, individual accounts, no direct root login, key-based authentication, and shows a legal warning banner.
 
-## Tools and Technologies
-Ubuntu Linux, OpenSSH, SSH key authentication.
+## Objective
 
-## Implementation
+To secure SSH remote administration on an Ubuntu server by disabling root login and password authentication, enforcing SSH key-based authentication, restricting permitted users, configuring connection limits, and displaying a legal warning banner.
 
-### 1. Generate a key and copy it to the server
-Run on the admin workstation:
+## Files Used
+
+| File | Purpose |
+|---|---|
+| `sshd_config` | SSH daemon security configuration |
+| `issue.net` | Legal warning banner displayed during SSH login |
+| `README.md` | Lab procedure, commands, and verification |
+| `screenshot/` | Evidence of configuration and testing |
+
+## Step 1: Generate SSH Keys and Copy Them to the Server
+
+On the administrator workstation, generate an SSH key pair:
+
 ```bash
 ssh-keygen -t ed25519 -C "admin@sti"
+```
+
+Copy the public key to the Ubuntu server:
+
+```bash
 ssh-copy-id student1@192.168.30.10
+```
+
+Test SSH key authentication:
+
+```bash
 ssh student1@192.168.30.10
 ```
-Confirm key login works before disabling password authentication.
 
-### 2. Back up and edit SSH configuration
+Confirm that login works using the SSH key before continuing.
+
+## Step 2: Configure SSH Daemon Security
+
+Create a backup of the original SSH configuration:
+
 ```bash
 sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
+```
+
+Edit the SSH daemon configuration:
+
+```bash
 sudo nano /etc/ssh/sshd_config
 ```
-Set the required directives:
+
+Configure the following security settings:
+
 ```text
 PermitRootLogin no
 PubkeyAuthentication yes
@@ -40,40 +69,35 @@ X11Forwarding no
 Banner /etc/issue.net
 ```
 
-### 3. Configure warning banner
-Edit `/etc/issue.net`:
+Save the file and exit the editor.
+
+**Important:** Ubuntu may include additional SSH configuration files inside `/etc/ssh/sshd_config.d/`. Check the effective configuration using `sshd -T` to ensure the intended security settings are applied.
+
+## Step 3: Configure the Legal Warning Banner
+
+Create or edit the SSH warning banner:
+
+```bash
+sudo nano /etc/issue.net
+```
+
+Add the following warning message:
+
 ```text
 *** Authorised use only. Activity is monitored and logged. ***
 *** Unauthorised access is prohibited and may be prosecuted. ***
 ```
 
-### 4. Validate and reload
+Save the file and exit.
+
+## Step 4: Test and Reload SSH Configuration
+
+Validate the SSH configuration syntax:
+
 ```bash
 sudo sshd -t
-sudo systemctl reload ssh
-```
-Test from another terminal:
-```bash
-ssh root@192.168.30.10
-ssh -o PubkeyAuthentication=no student1@192.168.30.10
-```
-Show effective settings:
-```bash
-sudo sshd -T | grep -Ei "permitrootlogin|passwordauthentication|maxauthtries"
 ```
 
-## Verification
-- `sshd -t` returns no output when syntax is valid.
-- Root SSH and password-only SSH attempts should be refused.
-- `sshd -T` displays effective configuration.
+No output indicates that the configuration syntax is valid.
 
-## Screenshots
-Store SSH configuration and verification screenshots in `screenshots/`.
-
-## Result
-SSH administrative access was hardened and verified in the lab.
-
-## Learning Outcomes
-- Configured key-based SSH authentication.
-- Disabled direct root and password login.
-- Added a legal warning banner and connection limits.
+Reload the SSH

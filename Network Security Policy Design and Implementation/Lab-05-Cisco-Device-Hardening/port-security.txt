@@ -1,0 +1,20 @@
+configure terminal
+
+! Secure access ports
+interface range fastEthernet 0/1 - 20
+ switchport mode access
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security mac-address sticky
+ switchport port-security violation shutdown
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+
+! Disable unused ports
+interface range fastEthernet 0/21 - 24
+ switchport mode access
+ switchport access vlan 999
+ shutdown
+
+end
+write memory
